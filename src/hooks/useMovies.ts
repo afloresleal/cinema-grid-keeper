@@ -61,29 +61,35 @@ export const useMovies = () => {
       ...movieData,
       id: Date.now().toString(),
     };
-    const updatedMovies = [...movies, newMovie];
-    setMovies(updatedMovies);
-    localStorage.setItem('movies', JSON.stringify(updatedMovies));
+    setMovies(prevMovies => {
+      const updatedMovies = [...prevMovies, newMovie];
+      localStorage.setItem('movies', JSON.stringify(updatedMovies));
+      return updatedMovies;
+    });
     console.log('useMovies: Movie added successfully');
   };
 
   const updateMovie = (id: string, movieData: MovieFormData) => {
     console.log('useMovies: Updating movie with id:', id, 'data:', movieData);
-    console.log('useMovies: Current movies array:', movies);
-    const updatedMovies = movies.map(movie =>
-      movie.id === id ? { ...movieData, id } : movie
-    );
-    console.log('useMovies: Updated movies array:', updatedMovies);
-    setMovies(updatedMovies);
-    localStorage.setItem('movies', JSON.stringify(updatedMovies));
+    setMovies(prevMovies => {
+      console.log('useMovies: Current movies array:', prevMovies);
+      const updatedMovies = prevMovies.map(movie =>
+        movie.id === id ? { ...movieData, id } : movie
+      );
+      console.log('useMovies: Updated movies array:', updatedMovies);
+      localStorage.setItem('movies', JSON.stringify(updatedMovies));
+      return updatedMovies;
+    });
     console.log('useMovies: Movie updated successfully');
   };
 
   const deleteMovie = (id: string) => {
     console.log('useMovies: Deleting movie with id:', id);
-    const updatedMovies = movies.filter(movie => movie.id !== id);
-    setMovies(updatedMovies);
-    localStorage.setItem('movies', JSON.stringify(updatedMovies));
+    setMovies(prevMovies => {
+      const updatedMovies = prevMovies.filter(movie => movie.id !== id);
+      localStorage.setItem('movies', JSON.stringify(updatedMovies));
+      return updatedMovies;
+    });
     console.log('useMovies: Movie deleted successfully');
   };
 
