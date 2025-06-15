@@ -8,9 +8,10 @@ import { Link } from 'react-router-dom';
 interface MovieCardProps {
   movie: Movie;
   onDelete: (id: string) => void;
+  onActorClick: (actor: string) => void;
 }
 
-const MovieCard = ({ movie, onDelete }: MovieCardProps) => {
+const MovieCard = ({ movie, onDelete, onActorClick }: MovieCardProps) => {
   const formatBadgeVariant = (format: string) => {
     switch (format) {
       case 'Digital':
@@ -59,7 +60,12 @@ const MovieCard = ({ movie, onDelete }: MovieCardProps) => {
             <span className="font-medium">Actors:</span>
             <div className="mt-1">
               {movie.mainActors.map((actor, index) => (
-                <Badge key={index} variant="outline" className="mr-1 mb-1 text-xs">
+                <Badge 
+                  key={index} 
+                  variant="outline" 
+                  className="mr-1 mb-1 text-xs cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors" 
+                  onClick={() => onActorClick(actor)}
+                >
                   {actor}
                 </Badge>
               ))}

@@ -8,16 +8,20 @@ interface FilterPanelProps {
   movies: Movie[];
   selectedGenres: string[];
   selectedDecades: string[];
+  selectedActors: string[];
   onGenresChange: (genres: string[]) => void;
   onDecadesChange: (decades: string[]) => void;
+  onActorsChange: (actors: string[]) => void;
 }
 
 const FilterPanel = ({
   movies,
   selectedGenres,
   selectedDecades,
+  selectedActors,
   onGenresChange,
   onDecadesChange,
+  onActorsChange,
 }: FilterPanelProps) => {
   const availableGenres = useMemo(() => {
     const genres = Array.from(new Set(movies.map(movie => movie.genre)));
@@ -30,6 +34,13 @@ const FilterPanel = ({
       return `${decade}s`;
     })));
     return decades.sort().reverse();
+  }, [movies]);
+
+  const availableActors = useMemo(() => {
+    const actors = Array.from(new Set(
+      movies.flatMap(movie => movie.mainActors)
+    ));
+    return actors.sort();
   }, [movies]);
 
   const handleGenreChange = (genre: string, checked: boolean) => {
@@ -45,6 +56,14 @@ const FilterPanel = ({
       onDecadesChange([...selectedDecades, decade]);
     } else {
       onDecadesChange(selectedDecades.filter(d => d !== decade));
+    }
+  };
+
+  const handleActorChange = (actor: string, checked: boolean) => {
+    if (checked) {
+      onActorsChange([...selectedActors, actor]);
+    } else {
+      onActorsChange(selectedActors.filter(a => a !== actor));
     }
   };
 
@@ -88,13 +107,33 @@ const FilterPanel = ({
         </div>
       </div>
 
+      {/* Actor Filter */}
+      <div>
+        <h3 className="font-medium text-gray-900 mb-3">Actors</h3>
+        <div className="space-y-2 max-h-48 overflow-y-auto">
+          {availableActors.map(actor => (
+            <div key={actor} className="flex items-center space-x-2">
+              <Checkbox
+                id={`actor-${actor}`}
+                checked={selectedActors.includes(actor)}
+                onCheckedChange={(checked) => handleActorChange(actor, checked as boolean)}
+              />
+              <Label htmlFor={`actor-${actor}`} className="text-sm">
+                {actor}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Clear Filters */}
-      {(selectedGenres.length > 0 || selectedDecades.length > 0) && (
+      {(selectedGenres.length > 0 || selectedDecades.length > 0 || selectedActors.length > 0) && (
         <div className="pt-4 border-t">
           <button
             onClick={() => {
               onGenresChange([]);
               onDecadesChange([]);
+              onActorsChange([]);
             }}
             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
           >

@@ -14,6 +14,7 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedDecades, setSelectedDecades] = useState<string[]>([]);
+  const [selectedActors, setSelectedActors] = useState<string[]>([]);
 
   const filteredMovies = useMemo(() => {
     return movies.filter((movie: Movie) => {
@@ -30,13 +31,25 @@ const Index = () => {
       const decade = Math.floor(movie.year / 10) * 10;
       const decadeMatch = selectedDecades.length === 0 || selectedDecades.includes(`${decade}s`);
 
-      return searchMatch && genreMatch && decadeMatch;
+      // Actor filter
+      const actorMatch = selectedActors.length === 0 || 
+        selectedActors.some(selectedActor => movie.mainActors.includes(selectedActor));
+
+      return searchMatch && genreMatch && decadeMatch && actorMatch;
     });
-  }, [movies, searchTerm, selectedGenres, selectedDecades]);
+  }, [movies, searchTerm, selectedGenres, selectedDecades, selectedActors]);
 
   const handleDeleteMovie = (id: string) => {
     if (window.confirm('Are you sure you want to delete this movie?')) {
       deleteMovie(id);
+    }
+  };
+
+  const handleActorClick = (actor: string) => {
+    if (selectedActors.includes(actor)) {
+      setSelectedActors(selectedActors.filter(a => a !== actor));
+    } else {
+      setSelectedActors([...selectedActors, actor]);
     }
   };
 
@@ -90,8 +103,10 @@ const Index = () => {
                 movies={movies}
                 selectedGenres={selectedGenres}
                 selectedDecades={selectedDecades}
+                selectedActors={selectedActors}
                 onGenresChange={setSelectedGenres}
                 onDecadesChange={setSelectedDecades}
+                onActorsChange={setSelectedActors}
               />
             </div>
           </div>
@@ -141,6 +156,7 @@ const Index = () => {
                       key={movie.id}
                       movie={movie}
                       onDelete={handleDeleteMovie}
+                      onActorClick={handleActorClick}
                     />
                   ))}
                 </div>
