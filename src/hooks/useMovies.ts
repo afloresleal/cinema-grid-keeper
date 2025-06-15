@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Movie, MovieFormData } from '@/types/movie';
 
 // Sample data for demonstration
@@ -49,7 +50,7 @@ export const useMovies = () => {
     }
   }, []);
 
-  const addMovie = useCallback((movieData: MovieFormData) => {
+  const addMovie = (movieData: MovieFormData) => {
     const newMovie: Movie = {
       ...movieData,
       id: Date.now().toString(),
@@ -57,25 +58,25 @@ export const useMovies = () => {
     const updatedMovies = [...movies, newMovie];
     setMovies(updatedMovies);
     localStorage.setItem('movies', JSON.stringify(updatedMovies));
-  }, [movies]);
+  };
 
-  const updateMovie = useCallback((id: string, movieData: MovieFormData) => {
+  const updateMovie = (id: string, movieData: MovieFormData) => {
     const updatedMovies = movies.map(movie =>
       movie.id === id ? { ...movieData, id } : movie
     );
     setMovies(updatedMovies);
     localStorage.setItem('movies', JSON.stringify(updatedMovies));
-  }, [movies]);
+  };
 
-  const deleteMovie = useCallback((id: string) => {
+  const deleteMovie = (id: string) => {
     const updatedMovies = movies.filter(movie => movie.id !== id);
     setMovies(updatedMovies);
     localStorage.setItem('movies', JSON.stringify(updatedMovies));
-  }, [movies]);
+  };
 
-  const getMovie = useCallback((id: string) => {
+  const getMovie = (id: string) => {
     return movies.find(movie => movie.id === id);
-  }, [movies]);
+  };
 
   return {
     movies,
