@@ -53,8 +53,9 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('API key exists:', !!omdbApiKey);
     console.log('API key length:', omdbApiKey.length);
     
-    const omdbUrl = `http://www.omdbapi.com/?t=${encodeURIComponent(searchQuery)}&apikey=${omdbApiKey}`;
-    console.log('OMDB URL (without key):', `http://www.omdbapi.com/?t=${encodeURIComponent(searchQuery)}&apikey=***`);
+    // Use HTTPS instead of HTTP - this is often the cause of 401 errors
+    const omdbUrl = `https://www.omdbapi.com/?t=${encodeURIComponent(searchQuery)}&apikey=${omdbApiKey}`;
+    console.log('OMDB URL (without key):', `https://www.omdbapi.com/?t=${encodeURIComponent(searchQuery)}&apikey=***`);
     
     const response = await fetch(omdbUrl);
     
@@ -62,6 +63,21 @@ const handler = async (req: Request): Promise<Response> => {
     
     if (!response.ok) {
       console.error('OMDB API HTTP error:', response.status, response.statusText);
+      
+      // Specific handling for 401 errors
+      if (response.status === 401) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Invalid API key or unauthorized access. Please check your OMDB API key.',
+            found: false 
+          }),
+          { 
+            status: 200, // Return 200 so the frontend can handle it gracefully
+            headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+          }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ error: `OMDB API error: ${response.status}` }),
         { 
