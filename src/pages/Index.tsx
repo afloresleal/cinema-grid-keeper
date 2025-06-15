@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MovieCard from '@/components/MovieCard';
 import FilterPanel from '@/components/FilterPanel';
@@ -47,12 +47,20 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h1 className="text-3xl font-bold text-gray-900">My Movie Library</h1>
-            <Link to="/add-movie">
-              <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Movie
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Link to="/import-movies">
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Import CSV
+                </Button>
+              </Link>
+              <Link to="/add-movie">
+                <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Movie
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -105,12 +113,20 @@ const Index = () => {
                     </>
                   )}
                 </div>
-                <Link to="/add-movie">
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Your First Movie
-                  </Button>
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                  <Link to="/import-movies">
+                    <Button variant="outline">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Import from CSV
+                    </Button>
+                  </Link>
+                  <Link to="/add-movie">
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Movie
+                    </Button>
+                  </Link>
+                </div>
               </div>
             ) : (
               <>
