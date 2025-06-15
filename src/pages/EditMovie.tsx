@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 const EditMovie = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { updateMovie, getMovie } = useMovies();
+  const { updateMovie, getMovie, isLoaded } = useMovies();
   const { toast } = useToast();
   const [formData, setFormData] = useState<MovieFormData>({
     name: '',
@@ -27,9 +27,15 @@ const EditMovie = () => {
   });
 
   useEffect(() => {
-    if (id) {
+    console.log('EditMovie: Component mounted, id:', id, 'isLoaded:', isLoaded);
+    
+    if (id && isLoaded) {
+      console.log('EditMovie: Attempting to get movie with id:', id);
       const movie = getMovie(id);
+      console.log('EditMovie: Retrieved movie:', movie);
+      
       if (movie) {
+        console.log('EditMovie: Setting form data with movie:', movie);
         setFormData({
           name: movie.name,
           year: movie.year,
@@ -44,6 +50,7 @@ const EditMovie = () => {
           coverUrl: movie.coverUrl
         });
       } else {
+        console.log('EditMovie: Movie not found, showing error and redirecting');
         toast({
           title: "Movie not found",
           description: "The movie you're trying to edit doesn't exist.",
@@ -52,12 +59,14 @@ const EditMovie = () => {
         navigate('/');
       }
     }
-  }, [id, getMovie, navigate, toast]);
+  }, [id, getMovie, navigate, toast, isLoaded]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!id) return;
+
+    console.log('EditMovie: Submitting form with data:', formData);
 
     // Validation
     const requiredFields = ['name', 'director', 'genre', 'coverUrl'];
@@ -79,6 +88,7 @@ const EditMovie = () => {
       mainActors: formData.mainActors.filter(actor => actor.trim() !== '')
     };
 
+    console.log('EditMovie: Calling updateMovie with:', id, filteredFormData);
     updateMovie(id, filteredFormData);
     
     toast({
@@ -103,6 +113,18 @@ const EditMovie = () => {
     newActors[index] = value;
     setFormData(prev => ({ ...prev, mainActors: newActors }));
   };
+
+  // Show loading state while movies are being loaded
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-semibold text-gray-900 mb-2">Loading...</div>
+          <div className="text-gray-600">Loading movie data...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

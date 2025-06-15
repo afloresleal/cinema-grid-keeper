@@ -38,19 +38,25 @@ const sampleMovies: Movie[] = [
 
 export const useMovies = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    console.log('useMovies: Loading movies from localStorage...');
     // Load movies from localStorage or use sample data
     const savedMovies = localStorage.getItem('movies');
     if (savedMovies) {
+      console.log('useMovies: Found saved movies in localStorage:', JSON.parse(savedMovies));
       setMovies(JSON.parse(savedMovies));
     } else {
+      console.log('useMovies: No saved movies found, using sample data');
       setMovies(sampleMovies);
       localStorage.setItem('movies', JSON.stringify(sampleMovies));
     }
+    setIsLoaded(true);
   }, []);
 
   const addMovie = (movieData: MovieFormData) => {
+    console.log('useMovies: Adding new movie:', movieData);
     const newMovie: Movie = {
       ...movieData,
       id: Date.now().toString(),
@@ -58,24 +64,36 @@ export const useMovies = () => {
     const updatedMovies = [...movies, newMovie];
     setMovies(updatedMovies);
     localStorage.setItem('movies', JSON.stringify(updatedMovies));
+    console.log('useMovies: Movie added successfully');
   };
 
   const updateMovie = (id: string, movieData: MovieFormData) => {
+    console.log('useMovies: Updating movie with id:', id, 'data:', movieData);
+    console.log('useMovies: Current movies array:', movies);
     const updatedMovies = movies.map(movie =>
       movie.id === id ? { ...movieData, id } : movie
     );
+    console.log('useMovies: Updated movies array:', updatedMovies);
     setMovies(updatedMovies);
     localStorage.setItem('movies', JSON.stringify(updatedMovies));
+    console.log('useMovies: Movie updated successfully');
   };
 
   const deleteMovie = (id: string) => {
+    console.log('useMovies: Deleting movie with id:', id);
     const updatedMovies = movies.filter(movie => movie.id !== id);
     setMovies(updatedMovies);
     localStorage.setItem('movies', JSON.stringify(updatedMovies));
+    console.log('useMovies: Movie deleted successfully');
   };
 
   const getMovie = (id: string) => {
-    return movies.find(movie => movie.id === id);
+    console.log('useMovies: Getting movie with id:', id);
+    console.log('useMovies: Available movies:', movies);
+    console.log('useMovies: Movies loaded?', isLoaded);
+    const movie = movies.find(movie => movie.id === id);
+    console.log('useMovies: Found movie:', movie);
+    return movie;
   };
 
   return {
@@ -84,5 +102,6 @@ export const useMovies = () => {
     updateMovie,
     deleteMovie,
     getMovie,
+    isLoaded,
   };
 };
