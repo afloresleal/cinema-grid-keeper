@@ -50,13 +50,25 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log('Searching for movie:', searchQuery);
+    console.log('API key exists:', !!omdbApiKey);
+    console.log('API key length:', omdbApiKey.length);
     
-    const response = await fetch(
-      `http://www.omdbapi.com/?t=${encodeURIComponent(searchQuery)}&apikey=${omdbApiKey}`
-    );
+    const omdbUrl = `http://www.omdbapi.com/?t=${encodeURIComponent(searchQuery)}&apikey=${omdbApiKey}`;
+    console.log('OMDB URL (without key):', `http://www.omdbapi.com/?t=${encodeURIComponent(searchQuery)}&apikey=***`);
+    
+    const response = await fetch(omdbUrl);
+    
+    console.log('OMDB response status:', response.status);
     
     if (!response.ok) {
-      throw new Error(`OMDB API error: ${response.status}`);
+      console.error('OMDB API HTTP error:', response.status, response.statusText);
+      return new Response(
+        JSON.stringify({ error: `OMDB API error: ${response.status}` }),
+        { 
+          status: 500, 
+          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        }
+      );
     }
     
     const data: OMDBResponse = await response.json();
@@ -64,6 +76,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('OMDB response:', data);
     
     if (data.Response === 'False') {
+      console.log('Movie not found or API error:', data.Error);
       return new Response(
         JSON.stringify({ found: false, error: data.Error || 'Movie not found' }),
         { 
