@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Search, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
 import { useMovies } from '@/hooks/useMovies';
 import { MovieFormData } from '@/types/movie';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const AddMovie = () => {
   const navigate = useNavigate();
@@ -17,6 +17,7 @@ const AddMovie = () => {
   const { toast } = useToast();
   const [isSearchMode, setIsSearchMode] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [formData, setFormData] = useState<MovieFormData>({
     name: '',
     year: new Date().getFullYear(),
@@ -27,32 +28,61 @@ const AddMovie = () => {
     coverUrl: ''
   });
 
-  const handleSearch = () => {
-    // In a real app, this would call an external API
-    // For now, we'll simulate auto-population
-    if (searchQuery.toLowerCase().includes('matrix')) {
-      setFormData({
-        name: 'The Matrix',
-        year: 1999,
-        director: 'The Wachowskis',
-        mainActors: ['Keanu Reeves', 'Laurence Fishburne', 'Carrie-Anne Moss'],
-        genre: 'Science Fiction',
-        format: 'Digital',
-        coverUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=600&fit=crop'
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    
+    try {
+      console.log('Searching for:', searchQuery);
+      
+      const { data, error } = await supabase.functions.invoke('omdb-search', {
+        body: { searchQuery: searchQuery.trim() }
       });
-      setIsSearchMode(false);
+      
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+      
+      console.log('Search result:', data);
+      
+      if (data.found) {
+        setFormData({
+          name: data.name,
+          year: data.year,
+          director: data.director,
+          mainActors: [...data.mainActors, '', ''].slice(0, 3), // Ensure we have 3 slots
+          genre: data.genre,
+          format: 'Digital',
+          coverUrl: data.coverUrl
+        });
+        setIsSearchMode(false);
+        toast({
+          title: "Movie found!",
+          description: `Found "${data.name}" (${data.year}). Please verify the information and select a format.`,
+        });
+      } else {
+        // No match found, switch to manual entry with the search query as name
+        setFormData(prev => ({ ...prev, name: searchQuery }));
+        setIsSearchMode(false);
+        toast({
+          title: "Movie not found",
+          description: data.error || "Movie not found in IMDB database. Please fill in the details manually.",
+        });
+      }
+    } catch (error: any) {
+      console.error('Search error:', error);
       toast({
-        title: "Movie found!",
-        description: "Please verify the information and select a format.",
+        title: "Search Error",
+        description: "Failed to search for movie. Please try again or enter details manually.",
+        variant: "destructive"
       });
-    } else {
-      // No match found, switch to manual entry
+      // Still allow manual entry
       setFormData(prev => ({ ...prev, name: searchQuery }));
       setIsSearchMode(false);
-      toast({
-        title: "No auto-match found",
-        description: "Please fill in the movie details manually.",
-      });
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -129,9 +159,9 @@ const AddMovie = () => {
           /* Search Mode */
           <Card>
             <CardHeader>
-              <CardTitle>Search for Movie</CardTitle>
+              <CardTitle>Search IMDB Database</CardTitle>
               <p className="text-gray-600">
-                Enter a movie title to automatically populate information, or continue manually if not found.
+                Enter a movie title to search the IMDB database and automatically populate information.
               </p>
             </CardHeader>
             <CardContent>
@@ -142,12 +172,20 @@ const AddMovie = () => {
                     placeholder="Enter movie title..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    onKeyDown={(e) => e.key === 'Enter' && !isSearching && handleSearch()}
+                    disabled={isSearching}
                   />
                 </div>
-                <Button onClick={handleSearch} disabled={!searchQuery.trim()}>
-                  <Search className="w-4 h-4 mr-2" />
-                  Search
+                <Button 
+                  onClick={handleSearch} 
+                  disabled={!searchQuery.trim() || isSearching}
+                >
+                  {isSearching ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4 mr-2" />
+                  )}
+                  Search IMDB
                 </Button>
               </div>
               <div className="mt-4">
@@ -155,6 +193,7 @@ const AddMovie = () => {
                   variant="outline"
                   onClick={() => setIsSearchMode(false)}
                   className="w-full"
+                  disabled={isSearching}
                 >
                   Enter Details Manually
                 </Button>
